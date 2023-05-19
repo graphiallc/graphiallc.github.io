@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
@@ -14,6 +14,7 @@ body { margin: 0; padding: 0; }
 </head>
 <body>
 <script src="https://unpkg.com/three@0.126.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.126.0/examples/js/loaders/DRACOLoader.js"></script>
 <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
 <div id="map"></div>
 <script>
@@ -79,11 +80,21 @@ const customLayer = {
 
 		// use the three.js GLTF loader to add the 3D model to the three.js scene
 		const loader = new THREE.GLTFLoader();
+		
+		// Set up DRACOLoader instance
+		const dracoLoader = new THREE.DRACOLoader();
+		dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/'); // replace with the path to your Draco decoder files
+
+		// Apply DRACOLoader instance to GLTFLoader
+		loader.setDRACOLoader(dracoLoader);
+
 		loader.load(
-			'./Model.glb',
-			(gltf) => {
-				this.scene.add(gltf.scene);
-			}
+		  './Model.glb',
+		  (gltf) => {
+			this.scene.add(gltf.scene);
+		  },
+		  undefined,
+		  (error) => console.error(error)
 		);
 		
 		this.map = map;
