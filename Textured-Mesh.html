@@ -17,24 +17,18 @@ body { margin: 0; padding: 0; }
 <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
 <div id="map"></div>
 <script>
-var taxparcel = {"type": "FeatureCollection", "features": [{ "type": "Feature", "properties": { "PARCEL": "022", "APN": "48018022" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -120.930484, 38.192545, 0.0 ], [ -120.931398, 38.192614, 0.0 ], [ -120.931671, 38.192544, 0.0 ], [ -120.933326, 38.192514, 0.0 ], [ -120.93467, 38.192507, 0.0 ], [ -120.935972, 38.19254, 0.0 ], [ -120.936354, 38.192531, 0.0 ], [ -120.936273, 38.191151, 0.0 ], [ -120.936261, 38.190561, 0.0 ], [ -120.936256, 38.190425, 0.0 ], [ -120.936242, 38.189999, 0.0 ], [ -120.936222, 38.189552, 0.0 ], [ -120.936193, 38.188957, 0.0 ], [ -120.931493, 38.189124, 0.0 ], [ -120.931383, 38.187467, 0.0 ], [ -120.931369, 38.187297, 0.0 ], [ -120.931324, 38.186649, 0.0 ], [ -120.926589, 38.186879, 0.0 ], [ -120.926741, 38.188273, 0.0 ], [ -120.9268, 38.189031, 0.0 ], [ -120.927135, 38.192573, 0.0 ], [ -120.927437, 38.192584, 0.0 ], [ -120.928512, 38.192567, 0.0 ], [ -120.929363, 38.192554, 0.0 ], [ -120.930484, 38.192545, 0.0 ] ] ] } } ] };
-var bbox = turf.bbox(taxparcel);
-var center = turf.centerOfMass(taxparcel);
-var start = center.geometry;
-var bounds = [
-[bbox[0], bbox[1]],
-[bbox[2], bbox[3]]
-];
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiZ3JhcGhpYWxsYyIsImEiOiJjbGJ6czdmczQxMG96M25tbjdtcHAzMXZsIn0.W51THNVZ1hqjky2typW9xg';
 
 // mapbox://styles/mapbox/satellite-v9
+//	bounds: [[-122.254165, 38.304302],[-122.229575, 38.329791]],
 const map = new mapboxgl.Map({
 	container: 'map',
 	style: 'mapbox://styles/mapbox/satellite-streets-v12',
-	center: [center.geometry.coordinates[0],center.geometry.coordinates[1]],
-	bounds: bounds,
-	pitch: 0,
+	center: [-122.241476, 38.316640],
+	pitch: 180, // pitch in degrees
+	bearing: 33, // bearing in degrees
+	zoom: 16.7,
 	interactive: true,
 	projection: "globe",
 	customAttribution: 'Graphia LLC',
@@ -42,10 +36,10 @@ const map = new mapboxgl.Map({
 });
 
 // parameters to ensure the model is georeferenced correctly on the map
-const modelOrigin = [center.geometry.coordinates[0] - 0.000242,center.geometry.coordinates[1] - 0.00042];
+const modelOrigin = [-122.24177, 38.31611];
 console.log(modelOrigin);
-const modelAltitude = 203.75;
-const modelRotate = [0, 0, 0]; // [Math.PI / 2, 0, 0]
+const modelAltitude = 175;
+const modelRotate = [Math.PI / 2, 0, 0];
 
 const modelAsMercatorCoordinate = mapboxgl.MercatorCoordinate.fromLngLat(
 	modelOrigin,
@@ -63,7 +57,7 @@ const modelTransform = {
 	/* Since the 3D model is in real world meters, a scale transform needs to be
 	 * applied since the CustomLayerInterface expects units in MercatorCoordinates.
 	 */
-	scale: 0.785*modelAsMercatorCoordinate.meterInMercatorCoordinateUnits()
+	scale: 1.002*modelAsMercatorCoordinate.meterInMercatorCoordinateUnits()
 };
 
 
@@ -80,13 +74,13 @@ const customLayer = {
 		this.scene = new THREE.Scene();
 
 		// create two three.js lights to illuminate the model.
-		const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+		const ambientLight = new THREE.AmbientLight(0x1166ff, 0.1);
 		this.scene.add(ambientLight);
 
 		// use the three.js GLTF loader to add the 3D model to the three.js scene
 		const loader = new THREE.GLTFLoader();
 		loader.load(
-			'https://samfreitas.github.io/model.glb',
+			'./Model.glb',
 			(gltf) => {
 				this.scene.add(gltf.scene);
 			}
@@ -102,6 +96,7 @@ const customLayer = {
 		});
 
 		this.renderer.autoClear = false;
+		this.renderer.outputEncoding = THREE.sRGBEncoding;
 	},
 	render: function (gl, matrix) {
 		const rotationX = new THREE.Matrix4().makeRotationAxis(
